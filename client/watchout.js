@@ -7,6 +7,9 @@ var MAX = 20;
 var coordinates = [];
 var delay = 2000;
 var score = 0;
+var collided = false;
+var tickInterval;
+var collisionInterval;
 var d3Score = d3.select('.current span').data([0]);
 var d3HighScore = d3.select('.highscore span').data([0]);
 var collisionCount = 0;
@@ -21,7 +24,12 @@ var drag = d3.behavior.drag().on('drag', function(d, i) {
   });
 });
 
-var svg = d3.select('.board')
+var board = d3.select('.board')
+  .style('width', WIDTH)
+  .style('height', HEIGHT)
+  .style('margin', '0 auto');
+
+var svg = board
   .append('svg')
   .attr('width', WIDTH)
   .attr('height', HEIGHT);
@@ -69,7 +77,17 @@ var update = function() {
   circle
     .transition().duration(delay)
     .attr('cx', function(d) { return d.cx; })
-    .attr('cy', function(d) { return d.cy; });
+    .attr('cy', function(d) { return d.cy; })
+    .tween('collisionCheck', function() {
+      return function(t) {
+        var cx = d3.select(this).attr('cx');
+        var cy = d3.select(this).attr('cy');
+        var coord = {cx: cx, cy: cy};
+        if (collision(mouse.datum(), coord)) {
+          collided = true;
+        }
+      };
+    });
   circle  
     .enter()
     .append('circle')
@@ -87,9 +105,35 @@ var update = function() {
   }
 };
 
-var tick = function() {
+var startGame = function() {
+  makeInitialData();
   update();
-  setTimeout(tick, delay);
+  tickInterval = setInterval(update, delay);
+  collisionInterval = setInterval(function () {
+    collisionCheck();
+    if (collided) {
+      stopGame();
+    }
+
+    d3Score.data([++score])
+      .text(function(d) { return d; });
+  }, 100);
+};
+
+var stopGame = function() {
+  clearInterval(tickInterval);
+  clearInterval(collisionInterval);
+  collided = false;
+  d3Collisions.data([collisionCount]).text(function(d) { return d; });
+  coordinates.length = 0;
+  update();
+  score = 0;
+  if (d3HighScore.datum() < score) {
+    d3HighScore.data([score])
+      .text(function(d) { return d; });
+  }
+
+  startGame();
 };
 
 var collision = function(m, c) {
@@ -102,34 +146,20 @@ var collisionCheck = function() {
   var cP = svg.selectAll('circle');
 
   // Some stop iterating when a true value is returned from the callback function.
-  var hasCollision = false;
   cP.each(function(circle) {
     var cx = d3.select(this).attr('cx');
     var cy = d3.select(this).attr('cy');
     if (collision(mP, {cx: cx, cy: cy})) {
-      hasCollision = true;
+      collided = true;
       collisionCount++;
     }
   });
-  if (hasCollision) {
-    if (d3HighScore.datum() < score) {
-      d3HighScore.data([score])
-        .text(function(d) { return d; });
-    }
-    d3Collisions.data([collisionCount]).text(function(d) { return d; });
-    coordinates.length = 0;
-    update();
-    makeInitialData();
-    update();
-    update();
-    score = 0;
-  }
-  
-  d3Score.data([++score])
-    .text(function(d) { return d; });
 };
 
-makeInitialData();
-update();
-tick();
-setInterval(collisionCheck, 100);
+startGame();
+
+
+
+
+
+
