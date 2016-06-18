@@ -4,8 +4,6 @@
 Feel free to use it if you like. */
 .mouse {
   background-color: yellow;
-  height: 40px;
-  width: 40px;
   border-radius: 50%;
   cursor: pointer;
 }
