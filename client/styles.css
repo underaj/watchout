@@ -6,4 +6,5 @@ Feel free to use it if you like. */
   background-color: blue;
   border-radius: 50%;
   cursor: pointer;
+  position: absolute;
 }
