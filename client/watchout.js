@@ -50,7 +50,7 @@ var update = function() {
   var circle = svg.selectAll('circle')
     .data(coordinates);
   circle
-    .transition().delay(delay)
+    .transition().duration(delay)
     .attr('cx', function(d) { return d.cx; })
     .attr('cy', function(d) { return d.cy; });
   circle  
@@ -74,9 +74,18 @@ var collision = function(m, c) {
 
 var collisionCheck = function() {
   var mP = mouse.datum();
-  var cP = svg.selectAll('circle').data();
+  var cP = svg.selectAll('circle');
+
   // Some stop iterating when a true value is returned from the callback function.
-  if (cP.some(collision.bind(null, mP))) {
+  var hasCollision = false;
+  cP.each(function(circle) {
+    var cx = d3.select(this).attr('cx');
+    var cy = d3.select(this).attr('cy');
+    if (collision(mP, {cx: cx, cy: cy})) {
+      hasCollision = true;
+    }
+  });
+  if (hasCollision) {
     if (d3HighScore.datum() < score) {
       d3HighScore.data([score])
         .text(function(d) { return d; });
@@ -94,4 +103,4 @@ for (var i = 0; i < 3; i++) {
 
 tick();
 
-setInterval(collisionCheck, 50);
+setInterval(collisionCheck, 100);
