@@ -3,8 +3,7 @@
 /* Note: an asteroid image is included in this repo.
 Feel free to use it if you like. */
 .mouse {
-  background-color: yellow;
+  background-color: blue;
   border-radius: 50%;
   cursor: pointer;
 }
-
